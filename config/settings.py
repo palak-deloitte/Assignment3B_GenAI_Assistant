@@ -157,3 +157,7 @@ CHUNK_SIZE = 1000
 CHUNK_OVERLAP = 200        
 RAG_TOP_K = 4             
 VECTOR_STORE_DIR = BASE_DIR / "vector_store"
+
+# ---- External tool: weather ----
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+WEATHER_TIMEOUT = 5      # seconds
