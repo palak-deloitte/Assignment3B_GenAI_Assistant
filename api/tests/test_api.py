@@ -392,3 +392,13 @@ def test_assignment2_queries_endpoint_still_lists_everything(alice_client, alice
     QueryLog.objects.create(user=alice, query_text="plain", kind=QueryLog.Kind.QUERY)
     QueryLog.objects.create(user=alice, query_text="asked", kind=QueryLog.Kind.ASK_AI)
     assert alice_client.get("/queries").json()["count"] == 2
+
+def test_deleting_a_document_outside_the_api_also_removes_its_vectors(alice):
+    doc = ingest_directly(alice, "Python", PYTHON_TEXT)
+    doc_id = doc.id                      # Django clears .id after delete(), so keep a copy
+    assert rag.search(alice.id, "python")
+
+    doc.delete()                         # same as deleting it in the admin panel
+
+    assert rag.count_chunks(alice.id, doc_id) == 0
+    assert rag.search(alice.id, "python") == []
