@@ -42,3 +42,7 @@ class IngestDocSerializer(serializers.Serializer):
 
 class RagQuerySerializer(serializers.Serializer):
     query = serializers.CharField(max_length=2000)
+
+class ChatSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=2000)
+    session_id = serializers.RegexField(r"^[A-Za-z0-9_-]{8,64}$", max_length=64)

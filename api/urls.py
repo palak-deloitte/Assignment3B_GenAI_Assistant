@@ -13,4 +13,5 @@ urlpatterns = [
     path("api/ingest-doc", views.IngestDocView.as_view()),
     path("api/rag-query", views.RagQueryView.as_view()),
     path("api/query-history", views.AIQueryHistoryView.as_view()),
+    path("api/chat", views.ChatView.as_view()),
 ]

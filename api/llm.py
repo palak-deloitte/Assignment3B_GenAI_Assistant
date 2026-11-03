@@ -85,3 +85,7 @@ def answer_from_context(question: str, chunks: list[dict]) -> str:
         for i, c in enumerate(chunks, start=1)
     )
     return _run(RAG_PROMPT, {"context": context, "question": question})
+
+def run(template, variables: dict) -> str:
+    """Public wrapper: run any prompt template through the model."""
+    return _run(template, variables)

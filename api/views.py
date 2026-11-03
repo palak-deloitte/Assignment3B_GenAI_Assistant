@@ -8,11 +8,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import Document, QueryLog, UserSession
-from .serializers import DocumentSerializer, LoginSerializer, QueryLogSerializer, RegisterSerializer, AskAISerializer, IngestDocSerializer,RagQuerySerializer 
+from .serializers import DocumentSerializer, LoginSerializer, QueryLogSerializer, RegisterSerializer, AskAISerializer, IngestDocSerializer,RagQuerySerializer, ChatSerializer
 from .uploads import PayloadTooLarge, extract_text
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 from .permissions import IsOwner
-from . import llm, rag
+from . import llm, rag, agent
 
 logger = logging.getLogger(__name__)
 
@@ -219,5 +219,35 @@ class AIQueryHistoryView(generics.ListAPIView):
     def get_queryset(self):
         return QueryLog.objects.filter(
             user=self.request.user,
-            kind__in=[QueryLog.Kind.ASK_AI, QueryLog.Kind.RAG],
+            kind__in=[QueryLog.Kind.ASK_AI, QueryLog.Kind.RAG, QueryLog.Kind.CHAT],
         )
+
+
+class ChatView(APIView):
+    def post(self, request):
+        serializer = ChatSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        message = serializer.validated_data["message"]
+        session_id = serializer.validated_data["session_id"]
+
+        try:
+            result = agent.run_agent(request.user.id, session_id, message)
+        except llm.LLMError:
+            return Response(
+                {"detail": "The AI service is unavailable. Please try again."},
+                status=status.HTTP_502_BAD_GATEWAY,
+            )
+        except Exception:
+            logger.exception("Agent failed")
+            return Response(
+                {"detail": "Something went wrong while answering. Please try again."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        QueryLog.objects.create(
+            user=request.user,
+            query_text=message,
+            result_summary=result["answer"],
+            kind=QueryLog.Kind.CHAT,
+        )
+        return Response(result)

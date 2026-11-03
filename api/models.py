@@ -33,6 +33,7 @@ class QueryLog(models.Model):
         QUERY = "query", "Query"          # Assignment 2's POST /query
         ASK_AI = "ask_ai", "Ask AI"       # POST /api/ask-ai
         RAG = "rag", "RAG query"          # POST /api/rag-query
+        CHAT = "chat", "Chat"             # POST /api/chat
 
     query_text = models.TextField()
     result_summary = models.TextField(blank=True)
